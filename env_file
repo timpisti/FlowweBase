@@ -1,0 +1,26 @@
+SERVER_NAME=flowbasetest.4i.hu flowwe.4i.hu
+CADDY_SERVER_EXTRA_DIRECTIVES="
+file_server
+encode gzip
+
+reverse_proxy /openobserve/* openobserve_service:5080 
+reverse_proxy /prerender/* prerender_service:3000
+reverse_proxy /mongo/* mongo_service:27017
+
+# CodeIgniter rewrite rules
+route /api/* {
+	rewrite * /api/index.php?{query}
+}
+
+@notFound {
+	not file
+	not path /api/*
+	not path /admin/*
+}
+rewrite @notFound /index.html
+
+log {
+  output file /app/logs/access.log
+  format console
+}
+"

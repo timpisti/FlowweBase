@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  php:
+    image: dunglas/frankenphp
+    env_file:
+      - env_file
+    ports:
+      - "443:443" # HTTPS
+      - "443:443/udp" # HTTP/3    
+    networks:
+      - flowbase_network      
+    volumes:
+      - ${FLOW_DIR}/services/datas/caddy_data:/data
+      - ${FLOW_DIR}/services/configs/caddy_config:/config
+      - ${FLOW_DIR}/public:/app/public
+      - ${FLOW_DIR}/services/logs:/app/logs
+    container_name: php_service
+
+  typesense:
+    image: typesense/typesense:26.0
+    restart: on-failure
+    networks:
+      - flowbase_network      
+    volumes:
+      - ${FLOW_DIR}/services/datas/typesense_data:/data
+      - ${FLOW_DIR}/services/logs/typesense:/logs
+    environment:
+      - TYPESENSE_API_KEY=${FLOW_API_KEY}
+      - TYPESENSE_DATA_DIR=/data
+    command: '--data-dir /data --api-key=${FLOW_API_KEY} --log-dir /logs --log-slow-requests-time-ms 2000'
+    container_name: typesense_service
+
+  openobserve:
+    image: openobserve/openobserve:latest
+    restart: unless-stopped
+    environment:
+      - ZO_WEB_URL=https://${FLOW_DOMAIN}/openobserve/
+      - ZO_BASE_URI=/openobserve/
+      - ZO_REPORT_SERVER_URI=https://${FLOW_DOMAIN}/openobserve/
+      - ZO_ROOT_USER_EMAIL=admin
+      - ZO_ROOT_USER_PASSWORD=${FLOW_API_KEY}
+    networks:
+      - flowbase_network      
+    volumes:
+      - ${FLOW_DIR}/services/datas/openobserve_data:/data
+    container_name: openobserve_service
+
+  prerender:
+    image: tvanro/prerender-alpine:latest
+    restart: on-failure
+    networks:
+      - flowbase_network      
+    environment:
+      - PRERENDER_TOKEN=${FLOW_API_KEY}
+    volumes:
+      - ${FLOW_DIR}/services/datas/prerender_data:/data
+    container_name: prerender_service
+
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    networks:
+      - flowbase_network      
+    volumes:
+       - ${FLOW_DIR}/services/datas/mongo_data:/data
+    environment:
+      - MONGO_INITDB_ROOT_PASSWORD=${FLOW_API_KEY}
+      - MONGO_INITDB_ROOT_USERNAME=admin
+    container_name: mongo_service
+
+
+  mysql:
+    image: mysql:latest
+    restart: unless-stopped
+    networks:
+      - flowbase_network
+    environment:
+      - MYSQL_ROOT_PASSWORD=${FLOW_API_KEY}
+      - MYSQL_DATABASE=Flow
+      - MYSQL_USER=${FLOW_ADMIN_EMAIL}
+      - MYSQL_PASSWORD=${FLOW_API_KEY}
+    volumes:
+      - ${FLOW_DIR}/services/datas/mysql_data:/var/lib/mysql
+    container_name: mysql_service
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - flowbase_network
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=${FLOW_ADMIN_EMAIL}
+      - PMA_PASSWORD=${FLOW_API_KEY}
+    container_name: phpmyadmin_service
+
+networks:
+  flowbase_network:
+    driver: bridge
