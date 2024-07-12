@@ -26,7 +26,13 @@ chmod +x ~/.docker/cli-plugins/docker-compose
 ```
 docker-compose --version
 ```
-3: Environments
+
+3: Clone the FlowwBase
+```
+git clone https://github.com/timpisti/FlowweBase
+```
+
+4: Environments
 
 Set the required environment variables:
 ```
@@ -36,12 +42,13 @@ FLOW_DOMAIN=[domain, like www.mydomain.com]
 FLOW_ADMIN_EMAIL=[email, like my@email.address]
 ```
 #### ALL of the services described below will use this credentials and properties to setup and run.
-4: Start the containers
+
+5: Start the containers
 ```
 docker-compose up -d
 ```
 
-5: The directory structure:
+6: The directory structure:
 On the first run, the directory structure will created automatically:
 
 - [FLOW_DIR]/public - Public wewbserver root
