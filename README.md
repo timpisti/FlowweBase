@@ -51,7 +51,7 @@ docker-compose up -d
 6: The directory structure:
 On the first run, the directory structure will created automatically:
 
-- [FLOW_DIR]/public - Public wewbserver root
+- [FLOW_DIR]/public - Public webserver root
 - [FLOW_DIR]/services/configs - The services config folders by service name
 - [FLOW_DIR]/services/datas - The services data folders by service name
 - [FLOW_DIR]/services/logs - The services log files by service name
